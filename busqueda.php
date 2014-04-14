@@ -26,7 +26,7 @@ $aux2 = 0;
 
 $datos=array();
 
-$con = mysql_connect($host,$user,$pass) or die("Sin conexion");
+$con = mysql_connect($host,$userDb,$passDb) or die("Sin conexion");
 mysql_select_db($db); 
 
 $filtro_categoria = mysql_query("SELECT itm_id FROM itm_categoria WHERE cat_id = 1") or die (mysql_error());
