@@ -1,7 +1,8 @@
 <?php
 header("Content-Type: text/html;charset=utf-8");
 include("conexion.php");
-/*
+require_once("JSON.php");  
+
 $usr_mail = $_POST["usr_mail"];
 $usr_nick = $_POST["usr_nick"];
 $usr_nombre = $_POST["usr_nombre"];
@@ -9,14 +10,11 @@ $usr_apellido = $_POST["usr_apellido"];
 $usr_sexo = $_POST["usr_sexo"];
 $usr_fecha_nacimiento = $_POST["usr_fecha_nacimiento"];
 $usr_pass = $_POST["usr_pass"];
-*/
-$usr_mail = "prueba@gmail.com";
-$usr_nick = "Nickprueba";
-$usr_nombre = "prueba";
-$usr_apellido = "apellidoPrueba";
-$usr_sexo = "M";
-$usr_fecha_nacimiento = "1987-11-30";
-$usr_pass = "prueba";
+
+$valido;
+
+$datos = array();
+$json = new Services_JSON;
 
 //Conexion BdD
 $con = mysql_connect("127.0.0.1","root","6464610") or die("Sin conexion");
@@ -25,12 +23,12 @@ mysql_select_db("triptour");
 $mail = mysql_query("SELECT usr_id FROM usr_usuarios WHERE usr_mail = '$usr_mail'") or die (mysql_error());
 if (mysql_num_rows ($mail) > 0)
 {
-	echo "Mail existente <br>";
+	$datos[0] ["valido"] = "mail";
 }
 $nick = mysql_query("SELECT usr_id FROM usr_usuarios WHERE usr_nick = '$usr_nick'") or die (mysql_error());
 if (mysql_num_rows ($nick) > 0)
 {
-	echo "Nick existente <br>";
+	$datos[0] ["valido"] = "nick";
 }
 if (mysql_num_rows ($nick) == 0 && mysql_num_rows ($mail) == 0)
 {
@@ -40,7 +38,12 @@ if (mysql_num_rows ($nick) == 0 && mysql_num_rows ($mail) == 0)
 
 	$sqlusuario = "INSERT INTO usr_usuarios (usr_mail, usr_nick, usr_nombre, usr_apellido, usr_sexo, usr_fecha_nacimiento, usr_edad, usr_pass, usr_grupo) 
 		VALUES('$usr_mail','$usr_nick','$usr_nombre','$usr_apellido','$usr_sexo','$usr_fecha_nacimiento','$usr_edad','$usr_pass',$usr_grupo)";
+
+	$resulResigtro=mysql_query($sqlusuario,$con);
+	echo "<br> Item".$resulResigtro;
 }
+
+echo $json->encode($datos); 
 
 //Identifica grupo del usuario
 function grupo($usr_edad, $usr_sexo)
@@ -67,7 +70,7 @@ function grupo($usr_edad, $usr_sexo)
 }
 //Calula edad
 function CalculaEdad( $fecha ) {
-    list($Y,$m,$d) = explode("-",$fecha);
+    list($Y,$m,$d) = explode("/",$fecha);
     return( date("md") < $m.$d ? date("Y")-$Y-1 : date("Y")-$Y );
 }
 ?>
