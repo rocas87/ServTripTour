@@ -40,7 +40,7 @@ if (mysql_num_rows ($nick) == 0 && mysql_num_rows ($mail) == 0)
 		VALUES('$usr_mail','$usr_nick','$usr_nombre','$usr_apellido','$usr_sexo','$usr_fecha_nacimiento','$usr_edad','$usr_pass',$usr_grupo)";
 
 	$resulResigtro=mysql_query($sqlusuario,$con);
-	echo "<br> Item".$resulResigtro;
+	echo "<br>".$resulResigtro;
 }
 
 echo $json->encode($datos); 

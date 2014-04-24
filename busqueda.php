@@ -4,26 +4,14 @@ header("Content-Type: text/html;charset=utf-8");
 include("conexion.php");
 include("calculoDistancia.php");
 
+$latitud = $_POST["latitud"];
+$longitud = $_POST["longitud"];
+$categoria = $_POST["categoria"];
+$radioBusqueda = $_POST["radioBusqueda"];
+
 require_once("JSON.php");  
 $json = new Services_JSON;
-//$data = array("nombre" => "Albert", "apellido" => "Camus");
-//echo $json->encode($data);
-
-//$latitud = $_Post["latitud"];
-//$longitud = $_Post["longitud"];
-//$categoria = $_Post["categoria"];
-//$radioBusqueda = $_Post["radioBusqueda"];
-
-//Coordenadas casa
-$latitud = -33.4547699;
-$longitud = -70.64989889999998;
-$categoria = 1;
-$radioBusqueda = 2;
-
 $i = 0;
-$aux1 = 0;
-$aux2 = 0;
-
 $datos=array();
 
 $con = mysql_connect($host,$userDb,$passDb) or die("Sin conexion");
@@ -49,13 +37,12 @@ else
  				{
 	 				while($r_filtro_distancia= mysql_fetch_array($filtro_distancia))
   					{
-  						$aux1++;
 	    				$itm_latitud= $r_filtro_distancia['itm_latitud'];
     					$itm_longitud = $r_filtro_distancia['itm_longitud'];
 
     					$distancia = distanciaGeodesica($latitud, $longitud, $itm_latitud, $itm_longitud);
 
-    					if($distancia>=$radioBusqueda)
+    					if($distancia<=$radioBusqueda)
     						{
     							$filtro_final = mysql_query("SELECT itm_nombre, itm_direccion, itm_promedio FROM itm_item WHERE itm_id = '$itm_id'") 
                                   or die (mysql_error());
@@ -66,42 +53,20 @@ else
 			 					else
  									{
  										while($r_filtro_final= mysql_fetch_array($filtro_final))
-  											{
-  												$aux2++;
-    											$itm_nombre = $r_filtro_final['itm_nombre'];
-    											//lat, long, dist
-    											$itm_direccion = $r_filtro_final['itm_direccion'];
-                          $itm_direccion = utf8_decode($itm_direccion);
-     											$itm_promedio = $r_filtro_final['itm_promedio'];
-
-                           //$datos[] = $r_filtro_final;
-
-    											//echo "Nombre: ".$itm_nombre." Latitud,Longitud: ".$itm_latitud.",".$itm_longitud." 
-    											//Distancia: ".$distancia." Direccion: ".$itm_direccion." Promedio: ".$itm_promedio."<br>";
-                          $i++;
-                          $datos [$i] ["itm_nombre"] = $itm_nombre;
-                          $datos [$i] ["itm_latitud"] = $itm_latitud;
-                          $datos [$i] ["itm_longitud"] = $itm_longitud;
+  											{                             											         
+                          $datos [$i] ["itm_nombre"] = $r_filtro_final['itm_nombre'];
+                          //$datos [$i] ["itm_latitud"] = $itm_latitud;
+                          //$datos [$i] ["itm_longitud"] = $itm_longitud;                          
+                          $datos [$i] ["itm_direccion"] = utf8_decode($r_filtro_final['itm_direccion']);
+                          $datos [$i] ["itm_promedio"] = $r_filtro_final["itm_promedio"];
                           $datos [$i] ["distancia"] = $distancia;
-                          $datos [$i] ["itm_direccion"] = $itm_direccion;
+                          $i++;
 											} 
 									}
     						}
 					}  	
 				}	
 		}
-}
-//echo "Resultados: ".mysql_num_rows($filtro_categoria)."<br>";
-//echo "Resultados: ".$aux1."<br>";
-//echo "Resultados: ".$aux2."<br>";
+} 
 echo $json->encode($datos);
-
-/*$sql="select itm_id where from itm_item";
-  $datos=array();
-  $rs=mysql_query($sql,$con);
-  while($row=mysql_fetch_object($rs)){
-       $datos[] = $row;
-  }
-  echo json_encode($datos);
-  */
 ?>
