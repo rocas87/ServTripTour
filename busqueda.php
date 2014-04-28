@@ -18,60 +18,56 @@ $fecha = "1900-".$hoy["mon"]."-".$hoy["mday"];
 $dia = $hoy ["weekday"];
 $hora = $hoy ["hours"].":".$hoy["minutes"].":00.000000";
 
+$radioBusqueda = "1000";
 $con = mysql_connect($host,$userDb,$passDb) or die("Sin conexion");
 mysql_select_db($db); 
 
 $filtro_categoria = mysql_query("SELECT itm_id FROM itm_categoria WHERE cat_id = '$categoria' ") or die (mysql_error());
-if (mysql_num_rows ($filtro_categoria) == 0) 
-{
-      $datos [0] ["resultado"] = "categoria";
-}
-else
-{
-  while ($r_filtro_categoria= mysql_fetch_array($filtro_categoria))
+
+while ($r_filtro_categoria= mysql_fetch_array($filtro_categoria))
   {
     $id_categoria = $r_filtro_categoria['itm_id'];
     //Lunes
     if($dia == "Monday")
     {
       $filtro_disponible = mysql_query("SELECT itm_id FROM itm_horario WHERE itm_id ='$id_categoria' and hr_lun_ini < '$hora' and 
-      hr_lun_cie > '$hora'") or die (mysql_error());
+        hr_lun_cie > '$hora'") or die (mysql_error());
     }
     //Martes
     elseif($dia == "Tuesday")
     {
       $filtro_disponible = mysql_query("SELECT itm_id FROM itm_horario WHERE itm_id ='$id_categoria' and hr_mar_ini < '$hora' and 
-      hr_mar_cie > '$hora'") or die (mysql_error());
+        hr_mar_cie > '$hora'") or die (mysql_error());
     }
     //Miercoles
     elseif ($dia == "Wednesday") 
     {
       $filtro_disponible = mysql_query("SELECT itm_id FROM itm_horario WHERE itm_id ='$id_categoria' and hr_mier_ini < '$hora' and 
-      hr_mier_cie > '$hora'") or die (mysql_error());
+        hr_mier_cie > '$hora'") or die (mysql_error());
     }
     //Jueves
     elseif ($dia == "Thursday") 
     {
       $filtro_disponible = mysql_query("SELECT itm_id FROM itm_horario WHERE itm_id ='$id_categoria' and hr_juev_ini < '$hora' and 
-     hr_juev_cie > '$hora'") or die (mysql_error());
+        hr_juev_cie > '$hora'") or die (mysql_error());
     }
     //Viernes
     elseif ($dia == "Friday") 
     {
       $filtro_disponible = mysql_query("SELECT itm_id FROM itm_horario WHERE itm_id ='$id_categoria' and hr_vier_ini < '$hora' and 
-      hr_vier_cie > '$hora'") or die (mysql_error());
+        hr_vier_cie > '$hora'") or die (mysql_error());
     }
     //Sabado
     elseif ($dia == "Saturday") 
     {
       $filtro_disponible = mysql_query("SELECT itm_id FROM itm_horario WHERE itm_id ='$id_categoria' and hr_sab_ini < '$hora' and 
-      hr_sab_cie > '$hora'") or die (mysql_error());
+        hr_sab_cie > '$hora'") or die (mysql_error());
     }
     //Domingo
     elseif ($dia == "Sunday") 
     {
       $filtro_disponible = mysql_query("SELECT itm_id FROM itm_horario WHERE itm_id ='$id_categoria' and hr_dom_ini < '$hora' and 
-      hr_dom_cie > '$hora'") or die (mysql_error());
+        hr_dom_cie > '$hora'") or die (mysql_error());
     }
 
     while ($r_filtro_disponible = mysql_fetch_array($filtro_disponible))
@@ -101,9 +97,12 @@ else
       }
     }
   }
-}
 
-if ($i==0) 
+if (mysql_num_rows ($filtro_categoria) == 0) 
+{
+      $datos [0] ["resultado"] = "categoria";
+}
+elseif ($i==0) 
 {
   $datos [0] ["resultado"] = "radioBusqueda";
 }
