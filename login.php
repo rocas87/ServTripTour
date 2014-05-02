@@ -6,9 +6,6 @@ include("conexion.php");
 $user = $_POST["usuario"];
 $pass = $_POST["pass"];
 
-//$user = "Benjamin.Gonzalez@gmail.c";
-//$pass = "Benjamin";
-
 require_once("JSON.php");  
 $json = new Services_JSON;
 

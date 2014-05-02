@@ -18,7 +18,6 @@ $fecha = "1900-".$hoy["mon"]."-".$hoy["mday"];
 $dia = $hoy ["weekday"];
 $hora = $hoy ["hours"].":".$hoy["minutes"].":00.000000";
 
-$radioBusqueda = "1000";
 $con = mysql_connect($host,$userDb,$passDb) or die("Sin conexion");
 mysql_select_db($db); 
 
