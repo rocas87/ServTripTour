@@ -6,14 +6,14 @@ include("conexion.php");
 include("pearson.php");
 include("calculoDistancia.php");
 require_once("JSON.php");  
-
+/*
 //Variables resividas desde el usuario
 $usuario = $_POST['usuario'];
 $latitud = $_POST["latitud"];
 $longitud = $_POST["longitud"];
 $categoria = $_POST["categoria"];
 $radioBusqueda = $_POST["radioBusqueda"];
-
+*/
 //Def Variables
 $json = new Services_JSON;
 
@@ -30,6 +30,12 @@ $fecha = "1900-".$hoy["mon"]."-".$hoy["mday"];
 $dia = $hoy ["weekday"];
 $hora = $hoy ["hours"].":".$hoy["minutes"].":00.000000";
 
+$latitud = "-33.4547699";
+$longitud = "-70.64989889999998";
+$categoria = 10;
+$radioBusqueda = 10;
+$usuario = "benjamin.g";
+
 //Conexion BdD
 $con=mysql_connect($host,$userDb,$passDb) or die ("problemas con servidor");
 mysql_select_db($db,$con) or die("problemas con bd");
@@ -39,6 +45,7 @@ $inf_usuario = mysql_query("SELECT usr_grupo FROM usr_usuarios WHERE usr_mail = 
 while($reg_inf=mysql_fetch_array($inf_usuario))
 {
 	$usr_grupo = $reg_inf['usr_grupo'];
+	echo "grupo".$usr_grupo;
 }
 
 unset($inf_usuario, $reg_inf);
@@ -126,6 +133,9 @@ while($reg4 = mysql_fetch_array($consulta_usuarios))
 
 unset($r_filtro_disponible, $r_filtro_distancia_fecha, $consulta_usuarios, $reg4);
 
+echo "<br> Usuarios: ".$usuario_id."<br>";
+echo "N° Item: ".$item_id."<br>";
+
 //Genero la matriz de Calificaciones de Usuario v/s items
 $aux_columna = 1;
 $item_usuario[0][0]="i/u";
@@ -162,7 +172,20 @@ for($columna=0; $columna < $usuario_id; $columna++)
 
 unset($id_usuarios, $id_itm, $reg5, $aux_columna, $aux_fila);
 
+//Imprimo matriz item_usuario
+
+for($fila=0; $fila<= $item_id; $fila++)
+	{
+		for($columna=0; $columna <= $usuario_id; $columna++)
+			{
+			echo $item_usuario[$fila][$columna]."  |  ";
+			}
+		echo "/<br>";
+	}
+
 //Calcula la matriz de Pearson	
+echo"---------------- <br>";
+
 for ($filPear=1; $filPear <= $item_id; $filPear++) 
 {
 	//Arreglo1
@@ -178,7 +201,10 @@ for ($filPear=1; $filPear <= $item_id; $filPear++)
 			$arr[$i-1] = $item_usuario[$colPear][$i];
 		}
 		$pearson[$filPear][$colPear] = abs(CorrelacionPearson($ar, $arr));
+
+		echo "|".$pearson[$filPear][$colPear]."|";
 	}
+	echo "**<br>";
 }
 
 //Selecciono los mayores
@@ -208,7 +234,7 @@ foreach ($mayor as $key => $val)
     $indice++;
 }
 
-//Busco los 5 mayores
+//Imprimo los 5 mayores
 if(5 <= $indice)
 {
 	for ($i=0; $i < 5 ; $i++) 

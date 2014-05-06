@@ -1,7 +1,4 @@
 <?php
-
-
-
 function DesviacionMedia($arr, $item)
 {
     return $arr[$item] - Promedio($arr);
@@ -20,29 +17,29 @@ function Promedio($arr)
     $num = count($arr);
    
     if($num>0):
-	    return $sum/$num;
-	else:
-		return NULL;
-	endif;
+        return $sum/$num;
+    else:
+        return NULL;
+    endif;
 }
 
 function Sumatorio($arr)
 {
-	if(in_array('N/D',$arr)):
-		for($i=0;$i<count($arr);$i++):
-			if($arr[$i]=='N/D'):
-				$arr[$i]=0;
-			endif;
-		endfor;
-	endif;
-		
-	
+    if(in_array('N/D',$arr)):
+        for($i=0;$i<count($arr);$i++):
+            if($arr[$i]=='N/D'):
+                $arr[$i]=0;
+            endif;
+        endfor;
+    endif;
+
+
    return array_sum($arr);
 }
 
 function CorrelacionPearson($arr1, $arr2)
 {       
-	$k = SumatorioProductoDesviacionMedia($arr1, $arr2);
+    $k = SumatorioProductoDesviacionMedia($arr1, $arr2);
     $ssmd1 = SumatorioDesviacionMediaAlCuadrado($arr1);
     $ssmd2 = SumatorioDesviacionMediaAlCuadrado($arr2);
 
@@ -50,11 +47,11 @@ function CorrelacionPearson($arr1, $arr2)
    
     $res = sqrt($producto);
    
-   	if($res!=0):
-	    return $k/$res;
-	else:
-		return 0;
-	endif;
+    if($res!=0):
+        return $k/$res;
+    else:
+        return 0;
+    endif;
 }
 
 

@@ -1,6 +1,6 @@
 <?php
 $host="localhost";
-$user="root";
+$user="rcastro";
 $pass="6464610";
 $db="triptour";
 ?>
