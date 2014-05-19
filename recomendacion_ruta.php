@@ -1,19 +1,30 @@
 <?php
 header("Content-Type: text/html;charset=utf-8");
+error_reporting(1);
 set_time_limit (3600);
 
 include("conexion.php");
 include("pearson.php");
 include("calculoDistancia.php");
-require_once("JSON.php");  
-/*
+include("parseador.php");
+require_once("JSON.php");
+
+
 //Variables resividas desde el usuario
+/*
 $usuario = $_POST['usuario'];
 $latitud = $_POST["latitud"];
 $longitud = $_POST["longitud"];
-$categoria = $_POST["categoria"];
 $distMaxima = $_POST["distMaxima"];
+$tRecorrido = $_POST["tiempoRecorrido"]; // dias-horas-minutos
+$mode = $_POST["mode"];
 */
+$latitud = "-33.4547699";
+$longitud = "-70.64989889999998";
+$mode = "driving";
+$distMaxima = 7;
+$usuario = "benjamin.g";
+$tRecorrido = "0,0,8"; // dias-horas-minutos
 //Def Variables
 $json = new Services_JSON;
 
@@ -30,10 +41,8 @@ $fecha = "1900-".$hoy["mon"]."-".$hoy["mday"];
 $dia = $hoy ["weekday"];
 $hora = $hoy ["hours"].":".$hoy["minutes"].":00.000000";
 
-$latitud = "-33.4547699";
-$longitud = "-70.64989889999998";
-$distMaxima = 10;
-$usuario = "benjamin.g";
+
+
 
 //Conexion BdD
 $con=mysql_connect($host,$userDb,$passDb) or die ("problemas con servidor");
@@ -44,7 +53,6 @@ $inf_usuario = mysql_query("SELECT usr_grupo FROM usr_usuarios WHERE usr_mail = 
 while($reg_inf=mysql_fetch_array($inf_usuario))
 {
 	$usr_grupo = $reg_inf['usr_grupo'];
-	echo "grupo".$usr_grupo;
 }
 
 unset($inf_usuario, $reg_inf);
@@ -124,9 +132,6 @@ while($reg4 = mysql_fetch_array($consulta_usuarios))
 
 unset($r_filtro_disponible, $r_filtro_distancia_fecha, $consulta_usuarios, $reg4);
 
-echo "<br> Usuarios: ".$usuario_id."<br>";
-echo "N° Item: ".$item_id."<br>";
-
 //Genero la matriz de Calificaciones de Usuario v/s items
 $aux_columna = 1;
 $item_usuario[0][0]="i/u";
@@ -163,19 +168,7 @@ for($columna=0; $columna < $usuario_id; $columna++)
 
 unset($id_usuarios, $id_itm, $reg5, $aux_columna, $aux_fila);
 
-//Imprimo matriz item_usuario
-
-for($fila=0; $fila<= $item_id; $fila++)
-	{
-		for($columna=0; $columna <= $usuario_id; $columna++)
-			{
-			echo $item_usuario[$fila][$columna]."  |  ";
-			}
-		echo "/<br>";
-	}
-
 //Calcula la matriz de Pearson	
-echo"---------------- <br>";
 
 for ($filPear=1; $filPear <= $item_id; $filPear++) 
 {
@@ -192,10 +185,7 @@ for ($filPear=1; $filPear <= $item_id; $filPear++)
 			$arr[$i-1] = $item_usuario[$colPear][$i];
 		}
 		$pearson[$filPear][$colPear] = abs(CorrelacionPearson($ar, $arr));
-
-		echo "|".$pearson[$filPear][$colPear]."|";
 	}
-	echo "**<br>";
 }
 
 //Selecciono los mayores
@@ -211,6 +201,7 @@ for($fila=1; $fila <= $item_id; $fila++)
 	}
 	$valor = 0;
 }
+
 //Ordeno los mas importantes
 arsort($mayor);
 foreach
@@ -220,13 +211,13 @@ foreach
     $indice++;
 }
 
+//Almaceno 5 mayores
 if(5 < $indice)
 {
     for ($i=0; $i < 5 ; $i++) 
     {
         $combina[$i] = $recomendacion[$i];
     } 
-
 }
 else
 {
@@ -236,74 +227,161 @@ else
     }
 }
 
-echo count($combina)."<br>";
-combinado($combina);
-/*//Imprimo los 5 mayores
-if(5 <= $indice)
-{
-	for ($i=0; $i < 4 ; $i++) 
-	{
-		$combinado = $recomendacion[$i].",".$recomendacion[$i++];
-		for ($i=0; $i < ; $i++) { 
-			# code...
-		}
-	} 
+//Genera combinaciones posibles
+$combinados = combinado($combina);
 
+for ($i=0; $i < count($combinados) ; $i++) 
+{ 
+  $arr_prom[$i]= promComb($combinados[$i]);
 }
-else
-{
-	for ($i=0; $i < $indice ; $i++) 
-	{ 
-		$sql_recomendacion = mysql_query("SELECT itm_nombre, itm_direccion, itm_promedio, itm_latitud, itm_longitud FROM itm_item 
-        WHERE itm_id ='$recomendacion[$i]'") or die (mysql_error());
 
-		while ($r_recomendacion= mysql_fetch_array($sql_recomendacion))
-		{
-			$datos [$d] ["resultado"] = "1";                                                           
-          	$datos [$d] ["itm_nombre"] = $r_recomendacion['itm_nombre'];                         
-          	$datos [$d] ["itm_direccion"] = utf8_decode($r_recomendacion['itm_direccion']);
-          	$datos [$d] ["itm_promedio"] = $r_recomendacion["itm_promedio"];
-          	$datos [$d] ["distancia"] = distanciaGeodesica($latitud, $longitud, $r_recomendacion['itm_latitud'], $r_recomendacion['itm_longitud']);
-          	$datos [$d] ["itm_latitud"] = $r_recomendacion['itm_latitud'];
-          	$datos [$d] ["itm_longitud"] = $r_recomendacion['itm_longitud'];
-	        $d++;
-		}
-	}
+//ordeno los mejores promedios
+$indice = 0;
+unset($combina);
+arsort($arr_prom);
+foreach
+ ($arr_prom as $key => $val) 
+{
+    $sort_average[$indice] = $arr_prom[$key];
+    $combina[$indice] = $combinados[$key];
+    $indice++;
 }
+/*
+  $rta[0] = $duracion;
+  $rta[1] = $distancia;
+  $rta[2] = $coordenadas;                                                           
+  $rta[3] = $itm_nombre;
 */
-if ($item_id==0) 
+$i=0;
+while ($d < 5) 
 {
-	$datos [0] ["resultado"] = "Distancia Maxima";
-}
+  $desc_ruta = datosRuta($latitud, $longitud, $combina[$i], $mode);
+  $dist = (explode(" ", $desc_ruta[1]));
+  $tiempo = explode(",", $tRecorrido);
+
+  if ((float) $dist[0] <= $distMaxima && (float) (parsear($desc_ruta[0],""," day")) <= (float)($tiempo[0])
+      && (float) (parsear($desc_ruta[0],""," hours")) <= (float)($tiempo[1]) 
+      && (float) (parsear($desc_ruta[0],""," mins")) <= (float)($tiempo[2])) 
+    {
+      $datos [$d] ["rta_nombre"] = $desc_ruta[3];                         
+      $datos [$d] ["rta_promedio"] = $sort_average[$i];
+      $datos [$d] ["rta_distancia"] = $desc_ruta[1];
+      $datos [$d] ["rta_duracion"] = $desc_ruta[0];
+      $datos [$d] ["rta_coordenadas"] = $desc_ruta[2];
+      $d++;
+    }
+    $i++;   
+    if ($i == count($combina))
+    {
+      $d = 5;
+    }       
+  }
+
 echo $json->encode($datos);
 
-function combinado($elementos) {
-        for ($i = 0; $i < count($elementos); $i++) {
-            for ($j = 1; $j < count($elementos); $j++) {
-                if ($elementos[$i] != $elementos[$j]) {
-                    echo $elementos[$i].",".$elementos[$j]."<br>";
-                }
-                for ($k = 2; $k < count($elementos); $k++) {
-                    if ($elementos[$i] != $elementos[$j] && $elementos[$i] != $elementos[$k] && $elementos[$j] != $elementos[$k]) {
-                        echo $elementos[$i].",".$elementos[$j].",".$elementos[$k]."<br>";
-                    }
-                    for ($l = 3; $l < count($elementos); $l++) {
-                        if ($elementos[$i] != $elementos[$j] && $elementos[$i] != $elementos[$k] && $elementos[$i] != $elementos[$l]
-                             && $elementos[$j] != $elementos[$k] && $elementos[$j] != $elementos[$l] && $elementos[$k] != $elementos[$l]) {
-                           echo $elementos[$i].",".$elementos[$j].",".$elementos[$k].",".$elementos[$l]."<br>";
-                        }
-                        for ($m=4; $m < count($elementos); $m++) { 
-                            if (
-                                $elementos[$i] != $elementos[$j] && $elementos[$i] != $elementos[$k] && $elementos[$i] != $elementos[$l] && $elementos[$i] != $elementos[$m]
-                             && $elementos[$j] != $elementos[$k] && $elementos[$j] != $elementos[$l] && $elementos[$j] != $elementos[$m]
-                             && $elementos[$k] != $elementos[$l] && $elementos[$k] != $elementos[$m]
-                             && $elementos[$l] != $elementos[$m]) {
-                                echo $elementos[$i].",".$elementos[$j].",".$elementos[$k].",".$elementos[$l].",".$elementos[$m]."<br>";
-                            }
-                        }
-                    }
-                }
-            }
+//Funcuiones
+
+function combinado($elementos) 
+{
+  $combinaciones[0] = 0;
+  $aux=0;
+  for ($i = 0; $i < count($elementos); $i++) {
+    for ($j = 1; $j < count($elementos); $j++) 
+    {
+      if ($elementos[$i] != $elementos[$j] && $i < $j) 
+      {
+        $combinaciones[$aux] = $elementos[$i].",".$elementos[$j];
+        $aux++;
+      }
+
+      for ($k = 2; $k < count($elementos); $k++) 
+      {
+        if ($elementos[$i] != $elementos[$j] && $elementos[$i] != $elementos[$k] && $elementos[$j] != $elementos[$k]
+            && $i < $j && $i < $k && $j < $k) 
+        {
+          $combinaciones[$aux] = $elementos[$i].",".$elementos[$j].",".$elementos[$k];
+          $aux++;
         }
+
+        for ($l = 3; $l < count($elementos); $l++) 
+        {
+          if ($elementos[$i] != $elementos[$j] && $elementos[$i] != $elementos[$k] && $elementos[$i] != $elementos[$l]
+              && $elementos[$j] != $elementos[$k] && $elementos[$j] != $elementos[$l] && $elementos[$k] != $elementos[$l]
+              && $i < $j && $i < $k && $i < $l
+              && $j < $k && $j < $l && $k < $l)
+          {
+            $combinaciones[$aux] = $elementos[$i].",".$elementos[$j].",".$elementos[$k].",".$elementos[$l];
+            $aux++;
+          }
+
+          for ($m=4; $m < count($elementos); $m++) 
+          {
+            if($elementos[$i] != $elementos[$j] && $elementos[$i] != $elementos[$k] && $elementos[$i] != $elementos[$l] && $elementos[$i] != $elementos[$m]
+               && $elementos[$j] != $elementos[$k] && $elementos[$j] != $elementos[$l] && $elementos[$j] != $elementos[$m]
+               && $elementos[$k] != $elementos[$l] && $elementos[$k] != $elementos[$m]
+               && $elementos[$l] != $elementos[$m]
+               && $i < $j && $i < $k && $i < $l && $i < $m
+               && $j < $k && $j < $l && $j < $m
+               && $k < $l && $k < $m
+               && $l < $m)
+            {
+                $combinaciones[$aux] = $elementos[$i].",".$elementos[$j].",".$elementos[$k].",".$elementos[$l].",".$elementos[$m];
+                $aux++;
+            }
+          }
+        }
+      }
     }
+  }
+  return $combinaciones;
+}
+
+function promComb($combi)
+{
+  $exp = explode(",", $combi);
+  for ($i=0; $i < count($exp); $i++) 
+  { 
+    $sql_recomendacion = mysql_query("SELECT itm_promedio FROM itm_item WHERE itm_id ='$exp[$i]'") or die (mysql_error());
+    while ($r_recomendacion= mysql_fetch_array($sql_recomendacion)) 
+    {
+      $itm_promedio[$i] = $r_recomendacion["itm_promedio"];
+    }
+    return average($itm_promedio);
+  }
+}
+function average($arr)
+{
+    $sum = Sumatorio($arr);
+    $num = count($arr);
+   
+    if($num>0):
+        return $sum/$num;
+    else:
+        return NULL;
+    endif;
+}
+function datosRuta($org_latitud, $org_longitud, $combinado, $mode)
+{
+  $map_url = "https://maps.googleapis.com/maps/api/directions/xml?&origin=".$org_latitud.",".$org_longitud."&waypoints=optimize:true";
+  $div_item = explode(",", $combinado);
+  for ($i=0; $i < count($div_item); $i++) 
+  { 
+     $sql_recomendacion = mysql_query("SELECT itm_nombre, itm_latitud, itm_longitud FROM itm_item WHERE itm_id ='$div_item[$i]'") or die (mysql_error());
+     while ( $r_recomendacion= mysql_fetch_array($sql_recomendacion)) 
+     {
+       $map_url = $map_url."|".$r_recomendacion['itm_latitud'].",". $r_recomendacion['itm_longitud'];
+       $coordenadas = $coordenadas."|".$r_recomendacion['itm_latitud'].",". $r_recomendacion['itm_longitud'];
+       $itm_nombre = $itm_nombre.",".$r_recomendacion['itm_nombre'];                         
+     }
+  }
+  $map_url = $map_url."&mode=".$mode."&language=en&region=cl&sensor=false";
+  $response_xml_data = file_get_contents($map_url);
+  $xml = simplexml_load_string($response_xml_data);
+ 
+  $rta[0] = (string) ($xml->route->leg->duration->text);
+  $rta[1] = (string) ($xml->route->leg->distance->text);
+  $rta[2] = $coordenadas;                                                           
+  $rta[3] = $itm_nombre;
+  return $rta;
+}
 ?>
