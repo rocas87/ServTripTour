@@ -31,9 +31,6 @@ while($reg4 = mysql_fetch_array($consulta_usuarios))
 		$usuario_id++;
 	}
 
-//echo "<br> Usuarios: ".$usuario_id."<br>";
-//echo "N° Item: ".$item_id."<br>";
-
 //Genero la matriz de Calificaciones de Usuario v/s items
 $aux_columna = 1;
 $item_usuario[0][0]="i/u";
@@ -69,30 +66,16 @@ for($columna=0; $columna < $usuario_id; $columna++)
 	}
 
 unset($id_usuarios, $id_itm, $reg5, $aux_columna, $aux_fila);
-/*
-//Imprimo matriz item_usuario
-
-for($fila=0; $fila<= $item_id; $fila++)
-	{
-		for($columna=0; $columna <= $usuario_id; $columna++)
-			{
-			echo $item_usuario[$fila][$columna]."  |  ";
-			}
-		echo "/<br>";
-	}
-*/
 //Calcula la matriz de Pearson	
-//echo"---------------- <br>";
-$archivo = "RecomendacionGrupo".$usr_grupo.".txt";
-$fp = fopen($archivo, "x");
-for ($filPear=1; $filPear <= $item_id; $filPear++) 
+
+for ($filPear=584; $filPear <= $item_id; $filPear++) 
 {
 	//Arreglo1
 	for ($i=1; $i <= $usuario_id; $i++) 
 	{ 
 		$ar[$i-1] = $item_usuario[$filPear][$i];
 	}
-	fwrite($fp, $item_usuario[$filPear][0]);
+	$fila = $item_usuario[$filPear][0];
 	for ($colPear=1; $colPear <= $item_id; $colPear++) 
 	{ 
 		//$arr2 = arreglo2($columna, $usuario_id, $item_usuario);
@@ -101,13 +84,11 @@ for ($filPear=1; $filPear <= $item_id; $filPear++)
 			$arr[$i-1] = $item_usuario[$colPear][$i];
 		}
 		$pearson[$filPear][$colPear] = abs(CorrelacionPearson($ar, $arr));
-		$aux = "|".$pearson[$filPear][$colPear];
-		fwrite($fp, $aux.PHP_EOL);
-		//echo "|".$pearson[$filPear][$colPear];
+		$aux = $aux."|".$pearson[$filPear][$colPear];
 	}
-	fwrite($fp, "*".PHP_EOL);
+	$recomendacion = mysql_query("INSERT INTO rec_grupo1 (itm_id, pearson) VALUES ('$fila','$aux')") or die (mysql_error());
+	unset($aux);
 }
-fclose($fp);
 $tiempo_fin = microtime_float();
 echo "<br>Tiempo empleado: " . ($tiempo_fin - $tiempo_inicio);
 function microtime_float()

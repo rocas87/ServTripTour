@@ -1,15 +1,20 @@
 
 <?php
 header("Content-Type: text/html;charset=utf-8");
-include('parseador.php');
-
+/*include('parseador.php');
+$archivo = "recomendacion/RecomendacionGrupo.txt";
+$fp = fopen($archivo, "x");
 for ($i=0; $i < 5 ; $i++) 
 { 
 	$recomendacion[$i] = $i;
 	$ar_combinado[$i] = $i;
+  fwrite($fp, $recomendacion[$i]);
 }
-
-$combinados = combinado($recomendacion);
+fclose($fp);
+*/
+$data = file_get_contents("http://www.webservicex.net/CurrencyConvertor.asmx/ConversionRate?FromCurrency=USD&ToCurrency=CLP");
+echo $data;
+/*$combinados = combinado($recomendacion);
 for ($i=0; $i < count($combinados); $i++) { 
     echo $combinados[$i]."<br>";
 }
@@ -27,8 +32,17 @@ $dist = explode(" ", $distancia);
 echo $tmp_hr[0]."<br>";
 echo $tmp_min."<br>";
 echo $dist[0];
-*/
-function combinado($elementos) 
+
+
+  $map_url = "https://maps.googleapis.com/maps/api/directions/xml?&origin=madrid&destination=Barcelona&mode=driving&language=en&region=es&sensor=false";
+  $response_xml_data = utf8_encode(file_get_contents($map_url));
+  print_r($response_xml_data);
+  echo "___________________________________________________________________________________________________________";
+  $xml = simplexml_load_string($response_xml_data);
+  echo (string) ($xml->route->leg->duration->text);
+  echo (string) ($xml->route->leg->distance->text);
+function
+ combinado($elementos) 
 {
   $combinaciones[0] = 0;
   $aux=0;
@@ -81,4 +95,5 @@ function combinado($elementos)
   }
   return $combinaciones;
 }
+*/
 ?>

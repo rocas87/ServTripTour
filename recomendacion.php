@@ -1,4 +1,6 @@
 <?php
+
+$tiempo_inicio = microtime_float();
 header("Content-Type: text/html;charset=utf-8");
 set_time_limit (3600);
 
@@ -7,12 +9,19 @@ include("pearson.php");
 include("calculoDistancia.php");
 require_once("JSON.php");  
 
+/*
 //Variables resividas desde el usuario
 $usuario = $_POST['usuario'];
 $latitud = $_POST["latitud"];
 $longitud = $_POST["longitud"];
 $categoria = $_POST["categoria"];
 $radioBusqueda = $_POST["radioBusqueda"];
+*/
+$latitud = "-33.4547699";
+$longitud = "-70.64989889999998";
+$categoria = 10;
+$radioBusqueda = 10;
+$usuario = "benjamin.g";
 
 //Def Variables
 $json = new Services_JSON;
@@ -219,13 +228,13 @@ if(5 <= $indice)
 		while ($r_recomendacion= mysql_fetch_array($sql_recomendacion))
 		{
 			$datos [$d] ["resultado"] = "1";                                                           
-          	$datos [$d] ["itm_nombre"] = $r_recomendacion['itm_nombre'];                         
-          	$datos [$d] ["itm_direccion"] = utf8_decode($r_recomendacion['itm_direccion']);
-          	$datos [$d] ["itm_promedio"] = $r_recomendacion["itm_promedio"];
-          	$datos [$d] ["distancia"] = distanciaGeodesica($latitud, $longitud, $r_recomendacion['itm_latitud'], $r_recomendacion['itm_longitud']);
-          	$datos [$d] ["itm_latitud"] = $r_recomendacion['itm_latitud'];
-          	$datos [$d] ["itm_longitud"] = $r_recomendacion['itm_longitud'];
-	        $d++;
+      $datos [$d] ["itm_nombre"] = $r_recomendacion['itm_nombre'];                         
+      $datos [$d] ["itm_direccion"] = utf8_decode($r_recomendacion['itm_direccion']);
+      $datos [$d] ["itm_promedio"] = $r_recomendacion["itm_promedio"];
+      $datos [$d] ["distancia"] = distanciaGeodesica($latitud, $longitud, $r_recomendacion['itm_latitud'], $r_recomendacion['itm_longitud']);
+      $datos [$d] ["itm_latitud"] = $r_recomendacion['itm_latitud'];
+      $datos [$d] ["itm_longitud"] = $r_recomendacion['itm_longitud'];
+	    $d++;
 		}
 	}
 }
@@ -259,4 +268,11 @@ elseif ($item_id==0)
 	$datos [0] ["resultado"] = "radioBusqueda";
 }
 echo $json->encode($datos);
+$tiempo_fin = microtime_float();
+echo "<br>Tiempo empleado: " . ($tiempo_fin - $tiempo_inicio);
+function microtime_float()
+{
+list($useg, $seg) = explode(" ", microtime());
+return ((float)$useg + (float)$seg);
+}
 ?>
